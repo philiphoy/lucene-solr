@@ -78,6 +78,8 @@ public class JettySolrRunner {
 
   private boolean stopAtShutdown;
 
+  private Filter filter;
+
   public static class DebugFilter implements Filter {
     public int requestsToKeep = 10;
     private AtomicLong nRequests = new AtomicLong();
@@ -134,12 +136,19 @@ public class JettySolrRunner {
     this.solrConfigFilename = solrConfigFilename;
     this.schemaFilename = schemaFileName;
   }
-  
-  public JettySolrRunner(String solrHome, String context, int port,
-      String solrConfigFilename, String schemaFileName, boolean stopAtShutdown) {
+
+  public JettySolrRunner(String solrHome, String context, int port, String solrConfigFilename, String schemaFileName, boolean stopAtShutdown) {
     this.init(solrHome, context, port, stopAtShutdown);
     this.solrConfigFilename = solrConfigFilename;
     this.schemaFilename = schemaFileName;
+  }
+  
+  public JettySolrRunner(String solrHome, String context, int port,
+      String solrConfigFilename, String schemaFileName,Filter filter, boolean stopAtShutdown) {
+    this.init(solrHome, context, port, stopAtShutdown);
+    this.solrConfigFilename = solrConfigFilename;
+    this.schemaFilename = schemaFileName;
+    this.filter = filter;
   }
 
   private void init(String solrHome, String context, int port, boolean stopAtShutdown) {
@@ -237,6 +246,7 @@ public class JettySolrRunner {
             schemaFilename);
 //        SolrDispatchFilter filter = new SolrDispatchFilter();
 //        FilterHolder fh = new FilterHolder(filter);
+        if(filter!=null) root.addFilter(new FilterHolder(filter),"*", EnumSet.of(DispatcherType.REQUEST) );
         debugFilter = root.addFilter(DebugFilter.class, "*", EnumSet.of(DispatcherType.REQUEST) );
         dispatchFilter = root.addFilter(SolrDispatchFilter.class, "*", EnumSet.of(DispatcherType.REQUEST) );
         if (solrConfigFilename != null) System.clearProperty("solrconfig");
